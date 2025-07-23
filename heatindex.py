@@ -44,15 +44,16 @@ class HeatIndexLookup:
         Calculate heat index given temperature (°F) and relative humidity (%)
         Returns the heat index temperature in °F
         """
+        if temp_f < 80 or humidity < 40:    
+            return temp_f  # Below table bounds, return actual temperature
+        
         # Round inputs to nearest table values
         temp_idx = round((temp_f - 80) / 2)  # Temperature starts at 80°F with 2°F steps
         humidity_idx = round((humidity - 40) / 5)  # Humidity starts at 40% with 5% steps
         
-        # Bounds checking
-        if temp_idx < 0 or humidity_idx < 0:
-            return temp_f  # Below table bounds, return actual temperature
+        # Bounds checking       
         if temp_idx >= HeatIndexLookup._heat_index_table.shape[1] or humidity_idx >= HeatIndexLookup._heat_index_table.shape[0]:
-            return 200  # Above table bounds, return dangerous high value
+            return 150  # Above table bounds, return dangerous high value
             
         return HeatIndexLookup._heat_index_table[humidity_idx, temp_idx]
 

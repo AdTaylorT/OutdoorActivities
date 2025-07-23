@@ -58,6 +58,7 @@ def get_and_plot(city_varN, state_varN, zipcode_varN, plot_frameN):
         forecast = gwf.WeatherForecast()
         df_15m = forecast.get_forecast(latlong)
         minutely_15_dataframe = pd.DataFrame(data = forecast.process_data(df_15m))
+        
         fig = plot_forecast(minutely_15_dataframe)
         # Clear previous plot
         for widget in plot_frameN.winfo_children():
