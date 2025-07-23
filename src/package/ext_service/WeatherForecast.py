@@ -6,7 +6,7 @@ import numpy as np
 
 from retry_requests import retry
 
-from minutely_15_data import minutely_15_data as m15
+from data.minutely_15_data import minutely_15_data as m15
 
 class WeatherForecast():
     client: openmeteo_requests.Client

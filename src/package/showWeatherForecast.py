@@ -6,10 +6,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import pandas as pd
 
-import WeatherForecast as gwf
-import geoCoding as gc
-from NotFoundError import NotFoundError
-from minutely_15_data import minutely_15_data as m15
+import ext_service.WeatherForecast as gwf
+import ext_service.geoCoding as gc
+from errors.NotFoundError import NotFoundError
+from data.minutely_15_data import minutely_15_data as m15
 
 def on_closing():
     plt.close('all')  # Close all matplotlib figures

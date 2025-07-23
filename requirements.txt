@@ -1,0 +1,23 @@
+# Core dependencies
+pandas
+matplotlib>=3.8.0  # For mouseover support in plots
+numpy
+
+# Weather API client
+openmeteo-requests
+requests-cache
+retry-requests
+
+# Geocoding
+pgeocode
+
+# Backend specific
+matplotlib-backend-qtquick  # Additional matplotlib backend support
+
+# Note: tkinter is part of Python's standard library and doesn't need to be installed separately
+
+# Packaging
+pyinstaller
+
+# Generated with pipreqs
+# To install: pip install -r requirements.txt

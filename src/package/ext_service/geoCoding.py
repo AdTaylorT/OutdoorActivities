@@ -1,6 +1,6 @@
 import pgeocode as pg
 import pandas as pd
-from NotFoundError import NotFoundError
+from errors.NotFoundError import NotFoundError
 
 class myGeoCode():
     nomi=None
