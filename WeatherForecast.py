@@ -55,12 +55,10 @@ class WeatherForecast():
             minutely_15_rain = minutely_15.Variables(2).ValuesAsNumpy() # type: ignore
             minutely_15_wind_speed_10m = minutely_15.Variables(3).ValuesAsNumpy() # type: ignore
 
-            print(response.Timezone())
-            print(response.UtcOffsetSeconds())
             # Create a DataFrame with the processed data
             minutely_15_data = {"date": pd.date_range(
-                start = pd.to_datetime(minutely_15.Time(), unit = "s", utc = False),# type: ignore
-                end = pd.to_datetime(minutely_15.TimeEnd(), unit = "s", utc = False),# type: ignore
+                start = pd.to_datetime(minutely_15.Time()+response.UtcOffsetSeconds(), unit = "s", utc = True),# type: ignore
+                end = pd.to_datetime(minutely_15.TimeEnd()+response.UtcOffsetSeconds(), unit = "s", utc = True),# type: ignore
                 freq = pd.Timedelta(seconds = minutely_15.Interval()),# type: ignore
                 inclusive = "left"
             )}
