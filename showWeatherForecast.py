@@ -8,6 +8,7 @@ import pandas as pd
 
 import WeatherForecast as gwf
 import geoCoding as gc
+from NotFoundError import NotFoundError
 
 def on_closing():
     plt.close('all')  # Close all matplotlib figures
@@ -22,14 +23,21 @@ def focus_next_widget(event):
 
 def plot_forecast(minutely_15_dataframe):
     fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["temperature_2m"], label = "Temperature (°F)")
+
+    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["temperature_2m"], label = "Temperature (°F)", linestyle='-')
     ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["rain"], label = "Rain (in)", linestyle=':')
     ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["wind_speed_10m"], label = "Wind Speed (mph)", linestyle='--')
     ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["relative_humidity_2m"], label = "Relative Humidity (%)", linestyle='-.')
+    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["direct_radiation"], label = "Direct Radiation (scaled to %)", linestyle='-.')
+
     ax.set_xlabel("Date")
     ax.set_ylabel("Variable")
+    ax.set_ylim(0, max(100, minutely_15_dataframe["temperature_2m"].max()))  # Set y-axis limits to 0-100%
     ax.set_title("Hourly Weather Forecast")
     ax.legend()
+    ax.grid(True)
+    ax.set_mouseover(True)  # Enable mouseover for better interactivity
+
     return fig
 
 def get_and_plot(city_varN, state_varN, zipcode_varN, plot_frameN):
@@ -57,6 +65,12 @@ def get_and_plot(city_varN, state_varN, zipcode_varN, plot_frameN):
         canvas = FigureCanvasTkAgg(fig, master=plot_frameN)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+    except NotFoundError as nfe:
+        messagebox.showerror("Location Not Found", str(nfe))
+        print(f"Error: {nfe}")
+    except ValueError as ve:
+        messagebox.showerror("Input Error", str(ve))
+        print(f"Error: {ve}")
     except Exception as e:
         messagebox.showerror("Error", str(e))
         print(f"Error: {e}")

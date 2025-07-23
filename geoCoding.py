@@ -9,15 +9,15 @@ class myGeoCode():
         self.nomi = pg.Nominatim(country_code)
 
     def fuzzy_name_lookup(self, city, state='Virginia'):
-        city = city.capitalize().strip()
-        state = state.lower().strip()
+        #city = city.capitalize().strip()
+        #state = state.lower().strip()
 
         query = self.nomi.query_location(name=city, fuzzy_threshold=70)        
         # Keep rows where state_name is 'Virginia'
         if len(state) == 2:
-            query = query[str(query['state_code']).lower() == state]
+            query = query[query['state_code'] == state]
         else:
-            query = query[str(query['state_name']).lower() == state]
+            query = query[query['state_name'] == state]
 
         if query.empty:
             print(f"City {city} not found in State {state}.")
@@ -27,7 +27,7 @@ class myGeoCode():
         return data
     
     def zipcode_lookup(self, zipcode):
-        zipcode = zipcode.strip()
+        #zipcode = zipcode.strip()
         if not zipcode.isdigit() or len(zipcode) != 5:
             print(f"Invalid zip code: {zipcode}. It should be a 5-digit number.")
             raise ValueError("Zip code must be a 5-digit number.")
