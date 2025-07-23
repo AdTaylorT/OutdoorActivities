@@ -14,6 +14,12 @@ def on_closing():
     root.destroy()    # Destroy the tkinter window
     root.quit()       # Stop the mainloop
 
+
+def focus_next_widget(event):
+    event.widget.tk_focusNext().focus()
+    return "break" # Prevents default tab behavior
+
+
 def plot_forecast(minutely_15_dataframe):
     fig, ax = plt.subplots(figsize=(8, 4))
     ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["temperature_2m"], label = "Temperature (°F)")
@@ -33,14 +39,14 @@ def get_and_plot(city_varN, state_varN, zipcode_varN, plot_frameN):
     try:
         gcode = gc.myGeoCode()
         if city and state:
-            end_loc = gcode.fuzzy_name_lookup(city, state)
+            location = gcode.fuzzy_name_lookup(city, state)
         elif zipcode:
-            end_loc = gcode.zipcode_lookup(zipcode)
+            location = gcode.zipcode_lookup(zipcode)
         else:
             messagebox.showerror("Input Error", "Please enter a city and state or a zipcode.")
             return
         # Extract lat/lon from DataFrame
-        latlong = (end_loc['lat'], end_loc['lon'])
+        latlong = (location['lat'], location['lon'])
         forecast = gwf.WeatherForecast()
         df_15m = forecast.get_forecast(latlong)
         minutely_15_dataframe = pd.DataFrame(data = forecast.process_data(df_15m))
@@ -66,53 +72,75 @@ input_frame = ttk.Frame(mainframe)
 input_frame.pack(fill=tk.X, pady=5)
 
 ### Starting Location
-ttk.Label(input_frame, text="Starting Locations:").pack(side=tk.LEFT, padx=5)
-
+ttk.Label(input_frame, text="Starting Location:\t").pack(side=tk.LEFT, padx=5)
+tk.Event()
 ttk.Label(input_frame, text="City:").pack(side=tk.LEFT)
 city_var = tk.StringVar()
 city_entry = ttk.Entry(input_frame, textvariable=city_var, width=15)
 city_entry.pack(side=tk.LEFT, padx=2)
+city_entry.bind('<Tab>', focus_next_widget)
 
 ttk.Label(input_frame, text="State:").pack(side=tk.LEFT)
 state_var = tk.StringVar()
 state_entry = ttk.Entry(input_frame, textvariable=state_var, width=10)
 state_entry.pack(side=tk.LEFT, padx=2)
+state_entry.bind('<Tab>', focus_next_widget)
 
 ttk.Label(input_frame, text="or Zipcode:").pack(side=tk.LEFT)
 zipcode_var = tk.StringVar()
 zipcode_entry = ttk.Entry(input_frame, textvariable=zipcode_var, width=10)
 zipcode_entry.pack(side=tk.LEFT, padx=2)
+zipcode_entry.bind('<Tab>', focus_next_widget)
+
+# Bind Enter key to search for starting location
+city_entry.bind('<Return>', lambda e: get_and_plot(city_var, state_var, zipcode_var, plot_frame))
+state_entry.bind('<Return>', lambda e: get_and_plot(city_var, state_var, zipcode_var, plot_frame))
+zipcode_entry.bind('<Return>', lambda e: get_and_plot(city_var, state_var, zipcode_var, plot_frame))
 
 plot_frame = ttk.Frame(mainframe)
 plot_frame.pack(fill=tk.BOTH, expand=True)
 
-search_btn = ttk.Button(input_frame, text="Show Forecast", command=lambda: get_and_plot(city_var, state_var, zipcode_var, plot_frame))
-search_btn.pack(side=tk.LEFT, padx=5)
+lamb = lambda: get_and_plot(city_var, state_var, zipcode_var, plot_frame)
+search_btn = ttk.Button(input_frame, text="Show Forecast", command=lamb)
+search_btn.pack(fill=tk.X, side=tk.LEFT, padx=40)
+search_btn.bind('<Tab>', focus_next_widget)
+search_btn.bind('<Return>', lambda e: lamb())
 
 ### Ending Location
 input_frame2 = ttk.Frame(mainframe)
 input_frame2.pack(fill=tk.X, pady=5)
-ttk.Label(input_frame2, text="Ending Locations:").pack(side=tk.LEFT, padx=5)
+ttk.Label(input_frame2, text="Ending Location:\t\t").pack(side=tk.LEFT, padx=5)
 
 ttk.Label(input_frame2, text="City:").pack(side=tk.LEFT)
 city_var2 = tk.StringVar()
 city_entry2 = ttk.Entry(input_frame2, textvariable=city_var2, width=15)
 city_entry2.pack(side=tk.LEFT, padx=2)
+city_entry2.bind('<Tab>', focus_next_widget)
 
 ttk.Label(input_frame2, text="State:").pack(side=tk.LEFT)
 state_var2 = tk.StringVar()
 state_entry2 = ttk.Entry(input_frame2, textvariable=state_var2, width=10)
 state_entry2.pack(side=tk.LEFT, padx=2)
+state_entry2.bind('<Tab>', focus_next_widget)
 
 ttk.Label(input_frame2, text="or Zipcode:").pack(side=tk.LEFT)
 zipcode_var2 = tk.StringVar()
 zipcode_entry2 = ttk.Entry(input_frame2, textvariable=zipcode_var2, width=10)
 zipcode_entry2.pack(side=tk.LEFT, padx=2)
+zipcode_entry2.bind('<Tab>', focus_next_widget)
+
+# Bind Enter key to search for ending location
+city_entry2.bind('<Return>', lambda e: get_and_plot(city_var2, state_var2, zipcode_var2, plot_frame2))
+state_entry2.bind('<Return>', lambda e: get_and_plot(city_var2, state_var2, zipcode_var2, plot_frame2))
+zipcode_entry2.bind('<Return>', lambda e: get_and_plot(city_var2, state_var2, zipcode_var2, plot_frame2))
 
 plot_frame2 = ttk.Frame(mainframe)
 plot_frame2.pack(fill=tk.BOTH, expand=True)
 
-search_btn2 = ttk.Button(input_frame2, text="Show Forecast", command=lambda: get_and_plot(city_var2, state_var2, zipcode_var2, plot_frame2))
-search_btn2.pack(side=tk.LEFT, padx=5)
+lamb2 = lambda: get_and_plot(city_var2, state_var2, zipcode_var2, plot_frame2)
+search_btn2 = ttk.Button(input_frame2, text="Show Forecast", command=lamb2)
+search_btn2.pack(fill=tk.X, side=tk.LEFT, padx=40)
+search_btn2.bind('<Tab>', focus_next_widget)
+search_btn2.bind('<Return>', lambda e: lamb2())
 
 root.mainloop()

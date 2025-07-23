@@ -10,9 +10,9 @@ class WeatherForecast():
 
     def __init__(self):
         # Setup the Open-Meteo API client with cache and retry on error
-        cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
+        cache_session = requests_cache.CachedSession('.cache', expire_after = 1800)
         retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
-        self.client = openmeteo_requests.Client()
+        self.client = openmeteo_requests.Client(session=retry_session) # type: ignore
 
     def get_forecast(self, latlong):
         # Make sure all required weather variables are listed here
