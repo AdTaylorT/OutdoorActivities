@@ -9,6 +9,7 @@ import pandas as pd
 import WeatherForecast as gwf
 import geoCoding as gc
 from NotFoundError import NotFoundError
+from minutely_15_data import minutely_15_data as m15
 
 def on_closing():
     plt.close('all')  # Close all matplotlib figures
@@ -24,15 +25,15 @@ def focus_next_widget(event):
 def plot_forecast(minutely_15_dataframe):
     fig, ax = plt.subplots(figsize=(8, 4))
 
-    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["temperature_2m"], label = "Temperature (°F)", linestyle='-')
-    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["rain"], label = "Rain (in)", linestyle=':')
-    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["wind_speed_10m"], label = "Wind Speed (mph)", linestyle='--')
-    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["relative_humidity_2m"], label = "Relative Humidity (%)", linestyle='-.')
-    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe["direct_radiation"], label = "Direct Radiation (scaled to %)", linestyle='-.')
+    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe[m15.TEMP.api_name], label = "Temperature (°F)", linestyle='-')
+    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe[m15.RAIN.api_name], label = "Rain (in)", linestyle=':')
+    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe[m15.WIND_SPEED.api_name], label = "Wind Speed (mph)", linestyle='--')
+    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe[m15.HUMIDITY.api_name], label = "Relative Humidity (%)", linestyle='-.')
+    ax.plot(minutely_15_dataframe["date"], minutely_15_dataframe[m15.DIRECT_RADIATION.api_name], label = "Direct Radiation (scaled to %)", linestyle='-.')
 
     ax.set_xlabel("Date")
     ax.set_ylabel("Variable")
-    ax.set_ylim(0, max(100, minutely_15_dataframe["temperature_2m"].max()))  # Set y-axis limits to 0-100%
+    ax.set_ylim(0, max(100, minutely_15_dataframe[m15.TEMP.api_name].max()))  # Set y-axis limits to 0-100%
     ax.set_title("Hourly Weather Forecast")
     ax.legend()
     ax.grid(True)
@@ -66,6 +67,10 @@ def get_and_plot(city_varN, state_varN, zipcode_varN, plot_frameN):
         canvas = FigureCanvasTkAgg(fig, master=plot_frameN)
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        
+        # Update window size to fit the new content
+        root.update_idletasks()  # Make sure all widgets are updated
+        root.geometry("")  # Reset geometry to let window resize to fit content
     except NotFoundError as nfe:
         messagebox.showerror("Location Not Found", str(nfe))
         print(f"Error: {nfe}")
@@ -79,6 +84,23 @@ def get_and_plot(city_varN, state_varN, zipcode_varN, plot_frameN):
 root = tk.Tk()
 root.title("Weather Forecast Viewer")
 root.protocol("WM_DELETE_WINDOW", on_closing)
+
+# Let the window size itself based on content
+root.update_idletasks()
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+
+# Set minimum window size to ensure controls are visible
+root.minsize(600, 100)
+
+# Center the window on the screen
+window_width = root.winfo_reqwidth()
+window_height = root.winfo_reqheight()
+x_position = (screen_width - window_width) // 2
+y_position = (screen_height - window_height) // 2
+root.geometry(f"+{x_position}+{y_position}")
+
+root.lift()
 
 mainframe = ttk.Frame(root, padding="10")
 mainframe.pack(fill=tk.BOTH, expand=True)
@@ -121,10 +143,14 @@ search_btn.pack(fill=tk.X, side=tk.LEFT, padx=40)
 search_btn.bind('<Tab>', focus_next_widget)
 search_btn.bind('<Return>', lambda e: lamb())
 
+# Add a separator between starting and ending locations
+separator = ttk.Separator(mainframe, orient='horizontal')
+separator.pack(fill=tk.X, pady=10, padx=5)
+
 ### Ending Location
 input_frame2 = ttk.Frame(mainframe)
 input_frame2.pack(fill=tk.X, pady=5)
-ttk.Label(input_frame2, text="Ending Location:\t\t").pack(side=tk.LEFT, padx=5)
+ttk.Label(input_frame2, text="Ending Location:\t").pack(side=tk.LEFT, padx=5)
 
 ttk.Label(input_frame2, text="City:").pack(side=tk.LEFT)
 city_var2 = tk.StringVar()

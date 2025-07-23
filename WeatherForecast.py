@@ -9,7 +9,7 @@ from retry_requests import retry
 from minutely_15_data import minutely_15_data as m15
 
 class WeatherForecast():
-    client: openmeteo_requests.Client | None = None
+    client: openmeteo_requests.Client
 
     def __init__(self):
         # Setup the Open-Meteo API client with cache and retry on error
@@ -34,7 +34,9 @@ class WeatherForecast():
         # Make sure all required weather variables are listed here
         # The order of variables in hourly or daily is important to assign them correctly below
         url = "https://api.open-meteo.com/v1/forecast"
-        min_15_param =["temperature_2m", "relative_humidity_2m", "rain", "wind_speed_10m", "direct_radiation"]
+        
+        # get the minutely_15 params from the enum
+        min_15_param = [x.api_name for x in m15]
         params = {
             "latitude": latlong[0],
             "longitude": latlong[1],
@@ -73,7 +75,7 @@ class WeatherForecast():
 
             # Do some shenanigans with direct radiation
             # to ensure values are scaled down to a "100"
-            # TODO probably track this in another field, so we can show the scale on the plot
+            # TODO probably track the number of loops in another field, so we can show the scale on the plot
             minutely_15_direct_radiation = minutely_15_data[m15.DIRECT_RADIATION.api_name]
             while max(minutely_15_direct_radiation) > 100: # Ensure values are scaled down to a percentage
                 minutely_15_direct_radiation = minutely_15_direct_radiation / 10
@@ -87,8 +89,5 @@ class WeatherForecast():
                 inclusive = "left"
             )
 
-            minutely_15_data[m15.DIRECT_RADIATION.api_name] = minutely_15_direct_radiation
-
-            print(minutely_15_data)
-
-            return minutely_15_data
+        print(minutely_15_data)
+        return minutely_15_data

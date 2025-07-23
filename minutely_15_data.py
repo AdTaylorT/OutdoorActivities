@@ -7,7 +7,7 @@ class minutely_15_data(Enum):
     WIND_SPEED = (3, "wind_speed_10m")
     DIRECT_RADIATION = (4, "direct_radiation")
 
-    def __init__(self, index, name):
+    def __init__(self, index: int, name: str):
         self.index = index
         self.api_name = name
 
