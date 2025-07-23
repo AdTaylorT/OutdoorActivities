@@ -6,8 +6,10 @@ import numpy as np
 
 from retry_requests import retry
 
+from minutely_15_data import minutely_15_data as m15
+
 class WeatherForecast():
-    client: openmeteo_requests.Client | None = None
+    client: openmeteo_requests.Client
 
     def __init__(self):
         # Setup the Open-Meteo API client with cache and retry on error
@@ -32,7 +34,9 @@ class WeatherForecast():
         # Make sure all required weather variables are listed here
         # The order of variables in hourly or daily is important to assign them correctly below
         url = "https://api.open-meteo.com/v1/forecast"
-        min_15_param =["temperature_2m", "relative_humidity_2m", "rain", "wind_speed_10m", "direct_radiation"]
+        
+        # get the minutely_15 params from the enum
+        min_15_param = [x.api_name for x in m15]
         params = {
             "latitude": latlong[0],
             "longitude": latlong[1],
@@ -60,34 +64,30 @@ class WeatherForecast():
     def process_data(self, response):
         # Process minutely_15 data. The order of variables needs to be the same as requested.
         minutely_15 = response.Minutely15()
+        minutely_15_data = {}
         if minutely_15:
-            for x in range(0, 4):
-                if not minutely_15.Variables(x):
+            for x in m15:
+                if not minutely_15.Variables(x.index):
                     print("error, no variables")
                     exit(1)
-            minutely_15_temperature_2m = minutely_15.Variables(0).ValuesAsNumpy()
-            minutely_15_relative_humidity_2m = minutely_15.Variables(1).ValuesAsNumpy()
-            minutely_15_rain = minutely_15.Variables(2).ValuesAsNumpy()
-            minutely_15_wind_speed_10m = minutely_15.Variables(3).ValuesAsNumpy()
-            
-            # Get radiation data (values are already in W/m²)
-            minutely_15_direct_radiation = minutely_15.Variables(4).ValuesAsNumpy()
+                else:
+                    minutely_15_data[x.api_name] = minutely_15.Variables(x.index).ValuesAsNumpy()
+
+            # Do some shenanigans with direct radiation
+            # to ensure values are scaled down to a "100"
+            # TODO probably track the number of loops in another field, so we can show the scale on the plot
+            minutely_15_direct_radiation = minutely_15_data[m15.DIRECT_RADIATION.api_name]
             while max(minutely_15_direct_radiation) > 100: # Ensure values are scaled down to a percentage
                 minutely_15_direct_radiation = minutely_15_direct_radiation / 10
+            minutely_15_data[m15.DIRECT_RADIATION.api_name] = minutely_15_direct_radiation
 
             # Create a DataFrame with the processed data
-            minutely_15_data = {"date": pd.date_range(
+            minutely_15_data["date"] = pd.date_range(
                 start = pd.to_datetime(minutely_15.Time()+response.UtcOffsetSeconds(), unit = "s", utc = True),
                 end = pd.to_datetime(minutely_15.TimeEnd()+response.UtcOffsetSeconds(), unit = "s", utc = True),
                 freq = pd.Timedelta(seconds = minutely_15.Interval()),
                 inclusive = "left"
-            )}
+            )
 
-            minutely_15_data["temperature_2m"] = minutely_15_temperature_2m 
-            minutely_15_data["relative_humidity_2m"] = minutely_15_relative_humidity_2m 
-            minutely_15_data["rain"] = minutely_15_rain
-            minutely_15_data["wind_speed_10m"] = minutely_15_wind_speed_10m
-            minutely_15_data["direct_radiation"] = minutely_15_direct_radiation
-            print(minutely_15_data)
-
-            return minutely_15_data
+        print(minutely_15_data)
+        return minutely_15_data
