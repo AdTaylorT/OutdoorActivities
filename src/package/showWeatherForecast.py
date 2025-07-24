@@ -6,8 +6,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import pandas as pd
 
-import ext_service.WeatherForecast as gwf
-import ext_service.geoCoding as gc
+from ext_service import WeatherForecast as gwf
+from ext_service import geoCoding as gc
 from errors.NotFoundError import NotFoundError
 from data.minutely_15_data import minutely_15_data as m15
 
