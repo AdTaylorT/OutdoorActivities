@@ -1,5 +1,8 @@
 from enum import Enum, auto
 
+class constants(Enum):
+    date = "date"
+
 class minutely_15_data(Enum):
     TEMP = (0, "temperature_2m")
     HUMIDITY = (1, "relative_humidity_2m")
