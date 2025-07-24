@@ -1,7 +1,7 @@
 @echo off
 echo Building WeatherBike executable...
 REM pyinstaller --clean weather.spec --log-level DEBUG
-pyinstaller --clean weather.spec
+pyinstaller --clean weather.spec --noconfirm
 if errorlevel 1 (
     echo Build failed! Check the output above for errors.
     pause
