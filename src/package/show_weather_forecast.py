@@ -32,9 +32,10 @@ def destroy_last_stop() -> None:
     """
     remove the content (3 elements) from adding in multiple stops
     """
+    global root_separator_count
     children = mainframe.winfo_children()
     count_children = len(children)
-    if ttk.Separator in [type(c) for c in children]:
+    if root_separator_count > 0:
         for c in reversed(children):
             if count_children <= root_frame_count:
                 # safe guard removing too many children
@@ -42,6 +43,7 @@ def destroy_last_stop() -> None:
                 return
             if type(c) == ttk.Separator:
                 c.destroy()
+                root_separator_count -= 1
                 return
             c.destroy()
             count_children -= 1
@@ -53,11 +55,16 @@ def add_location_form() -> None:
 
     setup the button, tab, and and return lambda binds.
     """
+    global root_separator_count
+    if root_separator_count >= 3:
+        return
+
     # are we at the "minimum" number of manditory children?
     if len(mainframe.winfo_children()) >= root_frame_count:
         # Add a separator between starting and any other location
         separator = ttk.Separator(mainframe, orient='horizontal')
         separator.pack(fill=tk.X, pady=10, padx=5)
+        root_separator_count += 1
 
     def create_var(input_frame: ttk.Frame, width=15) -> tk.StringVar:
         """ nested helper to add in a dynamic variable box """
@@ -166,6 +173,13 @@ def get_dataframe(city_var_n, state_var_n, zipcode_var_n):
     return None
 
 def plot_dataframe(plot_frame_n: ttk.Frame, minutely_15_dataframe: pd.DataFrame):
+    """
+    params:
+        plot_frame_n
+            a ttk.Frame to hold an graph of data
+        minutely_15_dataframe
+            a pandas.DataFrame that has the information to plot
+    """
     # shortcut if we don't get data, because we chain methods in the lambda
     # probably a cleaner way to do it, but it's UI stuff so what do i know
     if minutely_15_dataframe is None or minutely_15_dataframe.empty:
@@ -216,6 +230,7 @@ add_location_btn.bind('<Tab>', focus_next_widget)
 add_location_btn.bind('<Return>', lambda e: add_location_form())
 
 root_frame_count = len(mainframe.winfo_children())+1
+root_separator_count = 0
 add_location_form()
 remove_loc_btn = ttk.Button(input_frame,
                          text="Remove Last",
