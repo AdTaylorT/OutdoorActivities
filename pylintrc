@@ -1,5 +1,6 @@
 [MASTER]
-init-hook='import sys; sys.path.append("src/package/")'
+    init-hook='import sys; sys.path.append("src/package/")'
+    fail-under=8.5
 
 [tool.pylint]
     clear-cache-post-run = true
