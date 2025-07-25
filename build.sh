@@ -1,2 +1,2 @@
 #! /bin/bash
-pyinstaller --clean weather.spec
+pyinstaller --noconfirm --clean weather.spec

@@ -1,8 +1,8 @@
 import pgeocode as pg
-import pandas as pd
-from errors.NotFoundError import NotFoundError
 
-class myGeoCode():
+from errors.not_found_error import NotFoundError
+
+class GeoCode():
     nomi=None
 
     def __init__(self, country_code='US'):
@@ -12,7 +12,7 @@ class myGeoCode():
         #city = city.capitalize().strip()
         #state = state.lower().strip()
 
-        query = self.nomi.query_location(name=city, fuzzy_threshold=70)        
+        query = self.nomi.query_location(name=city, fuzzy_threshold=70)
         # Keep rows where state_name is 'Virginia'
         if len(state) == 2:
             query = query[query['state_code'] == state]
@@ -22,16 +22,16 @@ class myGeoCode():
         if query.empty:
             print(f"City {city} not found in State {state}.")
             raise NotFoundError("City not found.")
-        
+
         data = { 'lat': query['latitude'].values[0], 'lon': query['longitude'].values[0] }
         return data
-    
+
     def zipcode_lookup(self, zipcode):
         #zipcode = zipcode.strip()
         if not zipcode.isdigit() or len(zipcode) != 5:
             print(f"Invalid zip code: {zipcode}. It should be a 5-digit number.")
             raise ValueError("Zip code must be a 5-digit number.")
-        
+
         q2 = self.nomi.query_postal_code(codes=zipcode)
         q2.to_dict()
 
@@ -43,7 +43,7 @@ class myGeoCode():
         return data2
 
 if __name__ == "__main__":
-    geo = myGeoCode()
+    geo = GeoCode()
     lu1 = geo.fuzzy_name_lookup('Vienna')
     lu2 = geo.zipcode_lookup('22314')
 

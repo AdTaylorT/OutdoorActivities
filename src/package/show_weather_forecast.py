@@ -6,11 +6,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from ext_service import WeatherForecast as gwf
-from ext_service import geoCoding as gc
-from errors.NotFoundError import NotFoundError
-from data.minutely_15_data import minutely_15_data as m15
-from data.minutely_15_data import constants as cts
+from models.minutely_15_data import MinutelyData as m15
+from models.minutely_15_data import Constants as cts
+from errors.not_found_error import NotFoundError
+from ext_service import weather_forecast as gwf
+from ext_service import geo_coding as gc
 
 def on_closing():
     plt.close('all')  # Close all matplotlib figures
@@ -24,14 +24,14 @@ def focus_next_widget(event):
 def plot_forecast(minutely_15_dataframe):
     fig, ax = plt.subplots(figsize=(8, 4))
     # fmt = '[marker][line][color]'
-    datestr = minutely_15_dataframe[cts.date.value]
+    datestr = minutely_15_dataframe[cts.DATE.value]
     ax.plot(datestr, minutely_15_dataframe[m15.TEMP.api_name], '1:r', label = "Temperature (°F)")
     ax.plot(datestr, minutely_15_dataframe[m15.HUMIDITY.api_name], '2-.g', label = "Relative Humidity (%)")
     ax.plot(datestr, minutely_15_dataframe[m15.RAIN.api_name], '.--b', label = "Rain (in)")
     ax.plot(datestr, minutely_15_dataframe[m15.WIND_SPEED.api_name], '4--c', label = "Wind Speed (mph)")
     ax.plot(datestr, minutely_15_dataframe[m15.DIRECT_RADIATION.api_name], '*--y', label = "Direct Radiation (scaled to %)")
 
-    ax.set_xlabel(cts.date.value.capitalize())
+    ax.set_xlabel(cts.DATE.value.capitalize())
     ax.set_ylabel("Variable")
     ax.set_ylim(0, max(100, minutely_15_dataframe[m15.TEMP.api_name].max()))  # Set y-axis limits to 0-100%
     ax.set_title("Hourly Weather Forecast")
@@ -41,24 +41,24 @@ def plot_forecast(minutely_15_dataframe):
 
     return fig
 
-def get_dataframe(city_varN, state_varN, zipcode_varN):
-    city = city_varN.get()
-    state = state_varN.get()
-    zipcode = zipcode_varN.get()
+def get_dataframe(city_var_n, state_var_n, zipcode_var_n):
+    city = city_var_n.get()
+    state = state_var_n.get()
+    zipcode = zipcode_var_n.get()
     try:
-        gcode = gc.myGeoCode()
+        gcode = gc.GeoCode()
         if city and state:
             location = gcode.fuzzy_name_lookup(city, state)
         elif zipcode:
             location = gcode.zipcode_lookup(zipcode)
         else:
             messagebox.showerror("Input Error", "Please enter a city and state or a zipcode.")
-            return
+            return None
         # Extract lat/lon from DataFrame
         latlong = (location['lat'], location['lon'])
         forecast = gwf.WeatherForecast()
-        df_15m = forecast.get_forecast(latlong)        
-        
+        df_15m = forecast.get_forecast(latlong)
+
         return pd.DataFrame(data = forecast.process_data(df_15m))
     except NotFoundError as nfe:
         messagebox.showerror("Location Not Found", str(nfe))
@@ -70,19 +70,21 @@ def get_dataframe(city_varN, state_varN, zipcode_varN):
         messagebox.showerror("Error", str(e))
         print(f"Error: {e}")
 
-def plot_dataframe(plot_frameN, minutely_15_dataframe):
+    return None
+
+def plot_dataframe(plot_frame_n, minutely_15_dataframe):
     fig = plot_forecast(minutely_15_dataframe)
     # Clear previous plot
-    for widget in plot_frameN.winfo_children():
+    for widget in plot_frame_n.winfo_children():
         widget.destroy()
-    canvas = FigureCanvasTkAgg(fig, master=plot_frameN)
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame_n)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
-    
+
     # Update window size to fit the new content
     root.update_idletasks()  # Make sure all widgets are updated
     root.geometry("")  # Reset geometry to let window resize to fit content
-    
+
 root = tk.Tk()
 root.title("Weather Forecast Viewer")
 root.protocol("WM_DELETE_WINDOW", on_closing)
@@ -134,11 +136,17 @@ zipcode_entry.bind('<Tab>', focus_next_widget)
 plot_frame = ttk.Frame(mainframe)
 plot_frame.pack(fill=tk.BOTH, expand=True)
 # Bind Enter key to search for starting location
-city_entry.bind('<Return>', lambda e: plot_dataframe(plot_frame, get_dataframe(city_var, state_var, zipcode_var)))
-state_entry.bind('<Return>', lambda e: plot_dataframe(plot_frame, get_dataframe(city_var, state_var, zipcode_var)))
-zipcode_entry.bind('<Return>', lambda e: plot_dataframe(plot_frame, get_dataframe(city_var, state_var, zipcode_var)))
+city_entry.bind('<Return>',
+    lambda e: plot_dataframe(plot_frame, get_dataframe(city_var, state_var, zipcode_var)))
+state_entry.bind('<Return>',
+    lambda e: plot_dataframe(plot_frame, get_dataframe(city_var, state_var, zipcode_var)))
+zipcode_entry.bind('<Return>',
+    lambda e: plot_dataframe(plot_frame, get_dataframe(city_var, state_var, zipcode_var)))
 
-search_btn = ttk.Button(input_frame, text="Show Forecast", command=lambda: plot_dataframe(plot_frame, get_dataframe(city_var, state_var, zipcode_var)))
+search_btn = ttk.Button(
+    input_frame,
+    text="Show Forecast",
+    command=lambda: plot_dataframe(plot_frame, get_dataframe(city_var, state_var, zipcode_var)))
 search_btn.pack(fill=tk.X, side=tk.LEFT, padx=40)
 search_btn.bind('<Tab>', focus_next_widget)
 search_btn.bind('<Return>', lambda e: plot_dataframe(plot_frame, get_dataframe(city_var, state_var, zipcode_var)))
@@ -174,11 +182,16 @@ plot_frame2 = ttk.Frame(mainframe)
 plot_frame2.pack(fill=tk.BOTH, expand=True)
 
 # Bind Enter key to search for ending location
-city_entry2.bind('<Return>', lambda e: plot_dataframe(plot_frame2, get_dataframe(city_var2, state_var2, zipcode_var2)))
-state_entry2.bind('<Return>', lambda e: plot_dataframe(plot_frame2, get_dataframe(city_var2, state_var2, zipcode_var2)))
-zipcode_entry2.bind('<Return>', lambda e: plot_dataframe(plot_frame2, get_dataframe(city_var2, state_var2, zipcode_var2)))
+city_entry2.bind('<Return>',
+    lambda e: plot_dataframe(plot_frame2, get_dataframe(city_var2, state_var2, zipcode_var2)))
+state_entry2.bind('<Return>',
+    lambda e: plot_dataframe(plot_frame2, get_dataframe(city_var2, state_var2, zipcode_var2)))
+zipcode_entry2.bind('<Return>',
+    lambda e: plot_dataframe(plot_frame2, get_dataframe(city_var2, state_var2, zipcode_var2)))
 
-search_btn2 = ttk.Button(input_frame2, text="Show Forecast", command=lambda: plot_dataframe(plot_frame2, get_dataframe(city_var2, state_var2, zipcode_var2)))
+search_btn2 = ttk.Button(input_frame2,
+                         text="Show Forecast",
+                         command=lambda: plot_dataframe(plot_frame2, get_dataframe(city_var2, state_var2, zipcode_var2)))
 search_btn2.pack(fill=tk.X, side=tk.LEFT, padx=40)
 search_btn2.bind('<Tab>', focus_next_widget)
 search_btn2.bind('<Return>', lambda e: plot_dataframe(plot_frame2, get_dataframe(city_var2, state_var2, zipcode_var2)))

@@ -11,14 +11,14 @@ datas = []
 binaries = []
 hiddenimports = []
 
-for pkg in ['matplotlib', 'geocode', 'requests_cache', 'numpy', 'pandas']:
+for pkg in ['matplotlib', 'pgeocode', 'requests_cache', 'numpy', 'pandas']:
     pkg_datas, pkg_binaries, pkg_hiddenimports = collect_all(pkg)
     datas.extend(pkg_datas)
     binaries.extend(pkg_binaries)
     hiddenimports.extend(pkg_hiddenimports)
 
 a = Analysis(
-    ['src/package/showWeatherForecast.py'],
+    ['src/package/show_weather_forecast.py'],
     pathex=['src/package/'],
     binaries=binaries,
     datas=datas,

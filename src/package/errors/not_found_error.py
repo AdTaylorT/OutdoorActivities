@@ -1,7 +1,7 @@
 class NotFoundError(Exception):
     """
     Custom error class for handling not found errors.
-    
+
     Args:
         message (str): The error message to display.
     """

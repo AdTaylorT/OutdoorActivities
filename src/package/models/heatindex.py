@@ -1,6 +1,6 @@
-import numpy as np
 from enum import Enum, auto
 
+import numpy as np
 
 class HeatDanger(Enum):
     NORMAL = auto()      # Below 80°F
@@ -44,17 +44,18 @@ class HeatIndexLookup:
         Calculate heat index given temperature (°F) and relative humidity (%)
         Returns the heat index temperature in °F
         """
-        if temp_f < 80 or humidity < 40:    
+        if temp_f < 80 or humidity < 40:
             return temp_f  # Below table bounds, return actual temperature
-        
+
         # Round inputs to nearest table values
         temp_idx = round((temp_f - 80) / 2)  # Temperature starts at 80°F with 2°F steps
         humidity_idx = round((humidity - 40) / 5)  # Humidity starts at 40% with 5% steps
-        
-        # Bounds checking       
-        if temp_idx >= HeatIndexLookup._heat_index_table.shape[1] or humidity_idx >= HeatIndexLookup._heat_index_table.shape[0]:
+
+        # Bounds checking
+        if (temp_idx >= HeatIndexLookup._heat_index_table.shape[1]
+            or humidity_idx >= HeatIndexLookup._heat_index_table.shape[0]):
             return 150  # Above table bounds, return dangerous high value
-            
+
         return HeatIndexLookup._heat_index_table[humidity_idx, temp_idx]
 
     @staticmethod
@@ -65,11 +66,11 @@ class HeatIndexLookup:
         """
         if heat_index_temp < HeatIndex.HEAT_NORMAL:
             return HeatDanger.NORMAL
-        elif heat_index_temp < HeatIndex.HEAT_CAUTION:
+        if heat_index_temp < HeatIndex.HEAT_CAUTION:
             return HeatDanger.CAUTION
-        elif heat_index_temp < HeatIndex.HEAT_EXTREME_CAUTION:
+        if heat_index_temp < HeatIndex.HEAT_EXTREME_CAUTION:
             return HeatDanger.EXTREME_CAUTION
-        elif heat_index_temp < HeatIndex.HEAT_DANGER:
+        if heat_index_temp < HeatIndex.HEAT_DANGER:
             return HeatDanger.DANGER
-        else:
-            return HeatDanger.EXTREME_DANGER
+
+        return HeatDanger.EXTREME_DANGER
