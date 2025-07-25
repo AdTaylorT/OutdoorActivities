@@ -2,8 +2,7 @@ name: Build OutdoorActivities App for Windows
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -30,14 +29,14 @@ jobs:
       run: |
         pyinstaller --clean weather.spec
         # pyinstaller src/package/showWeatherForecast.py --onefile --windowed # Customize PyInstaller options
-    
+
     #- name: Create ZIP archive
     #  run: Compress-Archive -Path "dist\WeatherBike\*" -DestinationPath "dist\WeatherBike.zip"
     #  shell: powershell
-    
+
     #- name: Zip Archive
     #  run: zip -r WeatherBike.zip dist/WeatherBike/
-      
+
     - name: Upload Artifact Raw
       uses: actions/upload-artifact@v4
       with:
