@@ -11,29 +11,34 @@ class GeoCode():
     def __init__(self, country_code='US'):
         self.nomi = pg.Nominatim(country_code)
 
-    def fuzzy_name_lookup(self, city: str, state='Virginia'):
+    def fuzzy_name_lookup(self, city: str, state='Virginia') -> tuple[Any, Any]:
+        """
+        find lat/long based on city name, with a filter on state, default to Virginia
+
+        returns a tuple of lat and lon
+        """
         city = city.capitalize().strip()
-        state = state.capitalize().strip()
 
         query = self.nomi.query_location(name=city, fuzzy_threshold=70)
         # Keep rows where state_name is 'Virginia'
         if len(state) == 2:
+            state = state.upper().strip()
             query = query[query['state_code'] == state]
         else:
+            state = state.capitalize().strip()
             query = query[query['state_name'] == state]
 
         if query.empty:
             print(f"City {city} not found in State {state}.")
             raise NotFoundError("City not found.")
 
-        data = { 'lat': query['latitude'].values[0], 'lon': query['longitude'].values[0] }
-        return data
+        return (query['latitude'].values[0], query['longitude'].values[0])
 
-    def zipcode_lookup(self, zipcode) -> dict[str, Any]:
+    def zipcode_lookup(self, zipcode: str) -> tuple[Any, Any]:
         """
         get the lat and long for a given zipcode
 
-        returns a dict{'lat':np_float64, 'lon':np_float64}
+        returns a tuple of lat and lon
         """
         #zipcode = zipcode.strip()
         if not zipcode.isdigit() or len(zipcode) != 5:
@@ -45,7 +50,7 @@ class GeoCode():
             print(f"Zip code {zipcode} not found.")
             raise NotFoundError("Zip code not found.")
 
-        return { 'lat':  query['latitude'], 'lon': query['longitude'] }
+        return (query['latitude'], query['longitude'])
 
 if __name__ == "__main__":
     geo = GeoCode()

@@ -146,19 +146,18 @@ def get_dataframe(city_var_n, state_var_n, zipcode_var_n):
     try:
         gcode = gc.GeoCode()
         if city and state:
-            location = gcode.fuzzy_name_lookup(city, state)
+            latlong = gcode.fuzzy_name_lookup(city, state)
         elif zipcode:
-            location = gcode.zipcode_lookup(zipcode)
+            latlong = gcode.zipcode_lookup(zipcode)
         else:
             messagebox.showerror("Input Error", "Please enter a city and state or a zipcode.")
             return None
 
-        if location is None:
+        if latlong is None:
             messagebox.showerror("Input Error", "Could not find: city and state or a zipcode.")
             return None
 
         # Extract lat/lon from DataFrame
-        latlong = (location['lat'], location['lon'])
         forecast = gwf.WeatherForecast()
         df_15m = forecast.get_forecast(latlong)
 
@@ -172,7 +171,7 @@ def get_dataframe(city_var_n, state_var_n, zipcode_var_n):
 
     return None
 
-def plot_dataframe(plot_frame_n: ttk.Frame, minutely_15_dataframe: pd.DataFrame):
+def plot_dataframe(plot_frame_n: ttk.Frame, minutely_15_dataframe: pd.DataFrame | None):
     """
     params:
         plot_frame_n
