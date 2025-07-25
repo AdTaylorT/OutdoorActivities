@@ -1,26 +1,26 @@
-import openmeteo_requests
+from os import path, makedirs
+from tempfile import gettempdir
+from sys import exit as sysexit
 
+import openmeteo_requests
 import requests_cache
 import pandas as pd
-import numpy as np
 
 from retry_requests import retry
 
-from data.minutely_15_data import minutely_15_data as m15
+from models.minutely_15_data import MinutelyData as m15
 
 class WeatherForecast():
     client: openmeteo_requests.Client
 
     def __init__(self):
         # Setup the Open-Meteo API client with cache and retry on error
-        import os
-        import tempfile
-        
+
         # Create cache directory in user's temp directory
-        cache_dir = os.path.join(tempfile.gettempdir(), 'weatherbike')
-        os.makedirs(cache_dir, exist_ok=True)
-        cache_file = os.path.join(cache_dir, 'weather_cache.sqlite')
-        
+        cache_dir = path.join(gettempdir(), 'weatherbike')
+        makedirs(cache_dir, exist_ok=True)
+        cache_file = path.join(cache_dir, 'weather_cache.sqlite')
+
         # Initialize cache with 30 minute expiration
         cache_session = requests_cache.CachedSession(
             cache_file,
@@ -29,12 +29,12 @@ class WeatherForecast():
         )
         retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
         self.client = openmeteo_requests.Client(session=retry_session) # type: ignore
-        
+
     def get_forecast(self, latlong):
         # Make sure all required weather variables are listed here
         # The order of variables in hourly or daily is important to assign them correctly below
         url = "https://api.open-meteo.com/v1/forecast"
-        
+
         # get the minutely_15 params from the enum
         min_15_param = [x.api_name for x in m15]
         params = {
@@ -58,7 +58,7 @@ class WeatherForecast():
         #print(f"Elevation {response.Elevation()} m asl")
         #print(f"Timezone {response.Timezone()}{response.TimezoneAbbreviation()}")
         #print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
-        
+
         return response
 
     def process_data(self, response):
@@ -69,7 +69,7 @@ class WeatherForecast():
             for x in m15:
                 if not minutely_15.Variables(x.index):
                     print("error, no variables")
-                    exit(1)
+                    sysexit(1)
                 else:
                     minutely_15_data[x.api_name] = minutely_15.Variables(x.index).ValuesAsNumpy()
 

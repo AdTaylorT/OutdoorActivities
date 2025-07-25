@@ -1,0 +1,5 @@
+[tool.pylint]
+    clear-cache-post-run = true
+    max-line-length = 125
+
+    disable=C0304
