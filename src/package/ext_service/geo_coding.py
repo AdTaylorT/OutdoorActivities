@@ -51,6 +51,3 @@ if __name__ == "__main__":
     geo = GeoCode()
     lu1 = geo.fuzzy_name_lookup('Vienna')
     lu2 = geo.zipcode_lookup('22314')
-
-    print(f"Fuzzy name lookup: {lu1}")
-    print(f"Zip code lookup: {lu2}")
